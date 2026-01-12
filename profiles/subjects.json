@@ -1,0 +1,9 @@
+{
+  "name": "subjects",
+  "tagTemplate": "Subjects|{label}",
+  "queryDefaults": {
+    "k": 700,
+    "minScore": 0.25
+  },
+  "autoTags": ["year", "camera", "location"]
+}

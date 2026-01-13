@@ -14,6 +14,7 @@ export type AppConfig = Readonly<{
 export const getConfig = (): AppConfig => {
   const photoLibRoot = process.env.PHOTO_LIB ?? "/PATH/TO/LIBRARY";
   const projectRoot = process.cwd();
+  const maxFiles = parseOptionalInt(process.env.MAX_FILES);
 
   return {
     photoLibRoot,
@@ -21,7 +22,7 @@ export const getConfig = (): AppConfig => {
     repsDir: path.join(projectRoot, "derivatives", "reps"),
     reviewDir: path.join(projectRoot, "review"),
     profilesDir: path.join(projectRoot, "profiles"),
-    maxFiles: parseOptionalInt(process.env.MAX_FILES),
+    ...(maxFiles === undefined ? {} : { maxFiles }),
     repMaxSizePx: 768,
     videoFrameSecond: 3,
   };

@@ -33,11 +33,16 @@ export const verify = async (
 
   const lines: VerifyLine[] = [
     { ok: true, label: "Config: PHOTO_LIB", detail: cfg.photoLibRoot },
-    {
-      ok: assetsOk,
-      label: "Scan: data/assets.json exists",
-      detail: assetsOk ? `${assets.length} assets` : undefined,
-    },
+    assetsOk
+      ? {
+          ok: assetsOk,
+          label: "Scan: data/assets.json exists",
+          detail: `${assets.length} assets`,
+        }
+      : {
+          ok: assetsOk,
+          label: "Scan: data/assets.json exists",
+        },
     {
       ok: repsCount > 0,
       label: "Reps: some rep JPGs recorded",

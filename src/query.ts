@@ -10,6 +10,7 @@ import {
   streamAllVectors,
 } from "./vectorStore.js";
 import { dot, normalize } from "./similarity.js";
+import { createTopK } from "./topK.js";
 
 type Extractor = (
   input: string,
@@ -46,7 +47,7 @@ export const querySimilarMulti = async (
     anchorPaths.map(async (p) => normalize(await embedAnchor(extractor, p))),
   );
 
-  const top = createTopK(k);
+  const top = createTopK<TopItem>(k, (x) => x.score);
 
   await streamAllVectors(store, meta.dim, async (offset, vec) => {
     const id = offsetToId.get(offset);
@@ -105,45 +106,3 @@ const invertIndex = (
   return m;
 };
 
-const createTopK = (k: number) => {
-  const cap = Math.max(1, Math.floor(k));
-  let items: TopItem[] = [];
-
-  const offer = (x: TopItem): void => {
-    if (items.length < cap) {
-      items = [...items, x];
-      if (items.length === cap)
-        items = items.slice().sort((a, b) => a.score - b.score);
-      return;
-    }
-
-    const min = items[0];
-    if (!min) return;
-    if (x.score <= min.score) return;
-
-    const rest = items.slice(1);
-    const next = insertSortedAsc(rest, x);
-    items = next.length > cap ? next.slice(next.length - cap) : next;
-  };
-
-  const valuesSortedDesc = (): readonly TopItem[] =>
-    items.slice().sort((a, b) => b.score - a.score);
-
-  return { offer, valuesSortedDesc };
-};
-
-const insertSortedAsc = (arr: readonly TopItem[], x: TopItem): TopItem[] => {
-  const out: TopItem[] = [];
-  let inserted = false;
-
-  for (const it of arr) {
-    if (!inserted && x.score <= it.score) {
-      out.push(x);
-      inserted = true;
-    }
-    out.push(it);
-  }
-
-  if (!inserted) out.push(x);
-  return out;
-};

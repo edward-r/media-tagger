@@ -13,6 +13,7 @@ import { detectKind } from "./mediaDetect.js";
 import { generateRepresentatives } from "./reps.js";
 import { computeEmbeddings } from "./embed.js";
 import { querySimilarMulti } from "./query.js";
+import { querySimilarText } from "./queryText.js";
 import { generateReviewHtml } from "./review.js";
 import { startReviewServer } from "./reviewServer.js";
 import { applyTagsViaSidecars, getProfileAutoTags } from "./apply.js";
@@ -70,6 +71,11 @@ export const runCli = async (argv: readonly string[]): Promise<void> => {
 
     case "query": {
       await cmdQuery(cfg, rest);
+      break;
+    }
+
+    case "query-text": {
+      await cmdQueryText(cfg, rest);
       break;
     }
 
@@ -191,6 +197,7 @@ Commands:
   reps
   embed
   query --anchors "a|b|c" [--profile subjects --label "Teddy"] [--k N] [--minScore 0.25] [--out file.json]
+  query-text --text "a photo of a dog" [--k N] [--minScore 0.22] [--out file.json]
   tag-this --anchors "a|b|c" --profile subjects --label "Teddy" [--port 8787] [--open] [--apply] [--k N] [--minScore 0.25]
   review
   review-serve --port 8787
@@ -262,6 +269,71 @@ Profiles available:
   const results = await querySimilarMulti(cfg, anchors, k, minScore, out);
   console.log(`Wrote data/${out} with ${results.length} rows.`);
   console.log(`Also updated data/last_query.json`);
+};
+
+const cmdQueryText = async (
+  cfg: ReturnType<typeof getConfig>,
+  rest: readonly string[],
+): Promise<void> => {
+  const args = parseArgs(rest);
+
+  const textArg = args["--text"];
+  if (typeof textArg !== "string" || textArg.trim() === "") {
+    throw new Error(`query-text requires --text\n\nExample:\n  media-tagger query-text --text "a photo of a dog" --k 2000 --minScore 0.22 --out dog_candidates.json`);
+  }
+
+  const out = (args["--out"] ?? "text_candidates.json").trim();
+  if (out === "") throw new Error(`--out must be non-empty`);
+
+  const k = parsePositiveIntOr(textDefaultK, args["--k"], "--k");
+  const minScore = parseNumberInRangeOr(
+    0.0,
+    args["--minScore"],
+    "--minScore",
+    -1,
+    1,
+  );
+
+  const results = await querySimilarText(
+    cfg,
+    textArg.trim(),
+    k,
+    minScore,
+    out,
+  );
+
+  console.log(`Wrote data/${out} with ${results.length} rows.`);
+  console.log(`Also updated data/last_query.json`);
+};
+
+const textDefaultK = 2000;
+
+const parsePositiveIntOr = (
+  fallback: number,
+  v: string | undefined,
+  flagName: string,
+): number => {
+  if (typeof v !== "string" || v.trim() === "") return fallback;
+  const n = Number(v);
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n <= 0) {
+    throw new Error(`${flagName} must be a positive integer`);
+  }
+  return n;
+};
+
+const parseNumberInRangeOr = (
+  fallback: number,
+  v: string | undefined,
+  flagName: string,
+  min: number,
+  max: number,
+): number => {
+  if (typeof v !== "string" || v.trim() === "") return fallback;
+  const n = Number(v);
+  if (!Number.isFinite(n)) throw new Error(`${flagName} must be a number`);
+  if (n < min || n > max)
+    throw new Error(`${flagName} must be between ${min} and ${max}`);
+  return n;
 };
 
 const cmdTagThis = async (

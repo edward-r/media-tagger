@@ -14,12 +14,14 @@
     "reps": "tsx src/cli.ts reps",
     "embed": "tsx src/cli.ts embed",
     "query": "tsx src/cli.ts query",
+    "query-text": "tsx src/cli.ts query-text",
     "tag-this": "tsx src/cli.ts tag-this",
     "review": "tsx src/cli.ts review",
     "review:serve": "tsx src/cli.ts review-serve",
     "apply": "tsx src/cli.ts apply",
     "status": "tsx src/cli.ts status",
-    "verify": "tsx src/cli.ts verify"
+    "verify": "tsx src/cli.ts verify",
+    "test": "node --import tsx --test"
   },
   "dependencies": {
     "@xenova/transformers": "^2.17.2"

@@ -1,0 +1,346 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>media-tagger: Project Guide</title>
+
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reset.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/theme/simple.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/highlight/zenburn.min.css">
+
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+        <style>
+            .reveal section img { background: none; border: none; box-shadow: none; }
+            .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+            .mermaid { background: white; padding: 20px; border-radius: 8px; }
+            .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; }
+            .notes { font-size: 0.6em; color: #666; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; text-align: left;}
+        </style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+                <!-- Slide 1: Title -->
+				<section>
+                    <img src="nanobanana-output/a_modern_app_icon_for_a_software.png" style="width: 150px; height: 150px; border-radius: 20px;">
+					<h1>media-tagger</h1>
+					<h3>A Friendly Guide</h3>
+                    <p>Tagging photos with Machine Learning (on your own computer!)</p>
+                    <p><small>For Future Developers</small></p>
+
+                    <aside class="notes">
+                        Welcome, everyone. Today we’re exploring `media-tagger`. It’s a tool that uses machine learning to organize your messy photo and video libraries automatically. The best part? It runs entirely on your laptop—no cloud required. We’re going to look at how it works, from the code to the math, in a way that makes sense even if you’ve never touched ML before.
+                    </aside>
+				</section>
+
+                <!-- Slide 2: Introduction -->
+                <section>
+                    <h3>The Problem & The Solution</h3>
+                    <div class="two-col">
+                        <div>
+                            <ul>
+                                <li>You have 10,000 photos.</li>
+                                <li>You don't want to click 10,000 times.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <ul>
+                                <li><strong>The Helper</strong>: "Sees" your photos and groups them.</li>
+                                <li><strong>Local-First</strong>: Your photos stay safe on your disk.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <aside class="notes">
+                        Imagine you have a giant box of mixed-up photos and videos from the last ten years. You want to label them "Dog," "Beach," or "Birthday," but doing that by hand would take weeks. `media-tagger` is your automated helper. It looks at your media and finds similar items for you. And unlike some apps, it doesn't upload your private photos to the internet. It does all the math right here on your machine.
+                    </aside>
+                </section>
+
+                <!-- Slide 3: The Pipeline -->
+                <section>
+                    <h3>The Pipeline</h3>
+                    <div class="mermaid">
+                        graph LR
+                        A[Scan] --> B[Reps]
+                        B --> C[Embed]
+                        C --> D[Query]
+                        D --> E[Review]
+                        E --> F[Apply]
+                    </div>
+                    <ul>
+                        <li><strong>Scan</strong>: Make a list.</li>
+                        <li><strong>Reps</strong>: Create small JPGs.</li>
+                        <li><strong>Embed</strong>: Turn images into numbers.</li>
+                        <li><strong>Query</strong>: Find matches.</li>
+                        <li><strong>Review</strong>: You say "Yes" or "No".</li>
+                        <li><strong>Apply</strong>: Write the tags.</li>
+                    </ul>
+                    <aside class="notes">
+                        The system works in a pipeline, which is just a fancy word for "doing things in order." We break the big job into six small steps. First, we find the files. Then we prepare them. Then we do the math (that’s the ML part). Then we search. Finally, you—the human—double-check the work before we save the tags forever.
+                    </aside>
+                </section>
+
+                <!-- Slide 4: Steps 1 & 2 -->
+                <section>
+                    <h3>Step 1 & 2: Scan and Reps</h3>
+                    <ul>
+                        <li><strong>Scan</strong>: Walks folders to build a "Source of Truth" list.</li>
+                        <li><strong>Reps (Representatives)</strong>:
+                            <ul>
+                                <li>ML models need small, simple images.</li>
+                                <li>Giant videos are too big.</li>
+                                <li><strong>Solution</strong>: Make a small "Rep" JPG for every file.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <aside class="notes">
+                        Step 1 is "Scan." We just make a list of everything we have so we don't lose track. Step 2 is "Reps." Computers act fast, but processing a 4K video takes too long. So, we create a "Representative"—a small, simple picture that stands in for the big file. If it's a video, we just grab one frame. This "Rep" is what the brain of our system will actually look at.
+                    </aside>
+                </section>
+
+                <!-- Slide 5: Embed -->
+                <section>
+                    <h3>Step 3: Embed (The Magic)</h3>
+                    <ul>
+                        <li><strong>The Goal</strong>: Turn a picture into a list of numbers.</li>
+                        <li><strong>Why?</strong>: Computers can't "see" pixels, but they can do math on numbers.</li>
+                        <li><strong>The Output</strong>: A <strong>Vector</strong> (or Embedding).</li>
+                        <li><strong>Where</strong>: Saved to a "Vector Store" on your disk.</li>
+                    </ul>
+                    <aside class="notes">
+                        This is the most important step. We take our "Rep" image and pass it to a Machine Learning model. The model looks at the image and turns it into a list of numbers called a "Vector" or "Embedding." To a computer, a picture of a cat isn't furry ears and whiskers; it's just a specific list of numbers. We save this list so we can do math on it later.
+                    </aside>
+                </section>
+
+                <!-- Slide 6: Query -->
+                <section>
+                    <h3>Step 4: Query (The Search)</h3>
+                    <ul>
+                        <li><strong>The Anchor</strong>: You give the tool an example (e.g., a photo of your dog).</li>
+                        <li><strong>The Process</strong>:
+                            <ul>
+                                <li>Tool converts Anchor into numbers.</li>
+                                <li>Compares those numbers to every other file.</li>
+                            </ul>
+                        </li>
+                        <li><strong>The Result</strong>: A list of the best matches.</li>
+                    </ul>
+                    <aside class="notes">
+                        Now that everything is a number, we can search! You provide an "Anchor"—that's just an example image, like one photo of your dog. The tool turns your dog photo into numbers and asks, "Which other photos have numbers close to this one?" It creates a ranked list of the best matches.
+                    </aside>
+                </section>
+
+                <!-- Slide 7: Tech Stack -->
+                <section>
+                    <h3>Tech Stack</h3>
+                    <div class="two-col">
+                        <div>
+                            <h4>Node.js</h4>
+                            <p>Runs the code.</p>
+                            <h4>TypeScript</h4>
+                            <p>Safety labels.</p>
+                        </div>
+                        <div>
+                            <h4>@xenova/transformers</h4>
+                            <p>ML in JS (No Python!).</p>
+                            <h4>FFmpeg</h4>
+                            <p>Video processing.</p>
+                        </div>
+                    </div>
+                    <aside class="notes">
+                        We built this using standard web tools. Node.js runs our code, and TypeScript helps us avoid bugs by labeling our data. The cool new piece here is `@xenova/transformers`—it lets us run powerful AI models using just JavaScript, which is rare! And for the heavy video work, we use a trusty tool called FFmpeg.
+                    </aside>
+                </section>
+
+                <!-- Slide 8: Vectors -->
+                <section>
+                    <h3>ML Concepts: Vectors</h3>
+                    <pre><code data-trim class="javascript">[0.5, -1.2, 3.3, 0.9, ...]</code></pre>
+                    <ul>
+                        <li><strong>What is a Vector?</strong> Just a list of numbers.</li>
+                        <li><strong>Dimension</strong>: How long the list is.</li>
+                        <li><strong>Rule</strong>: All vectors must have the same length.</li>
+                        <li><strong>Analogy</strong>: Like a barcode.</li>
+                    </ul>
+                    <aside class="notes">
+                        Let's demystify "Vectors." A vector is just a list of numbers. That's it. It might look like `[10, 20, 30]`. The "Dimension" is just how many numbers are in the list. If our model produces lists of 512 numbers, every single image must be turned into a list of exactly 512 numbers. If the lists are different lengths, the math breaks.
+                    </aside>
+                </section>
+
+                <!-- Slide 9: Metaphors -->
+                <section>
+                    <h3>ML Concepts: Embeddings</h3>
+                    <div class="two-col">
+                        <div>
+                            <h4>The Fingerprint</h4>
+                            <p>A fingerprint isn't a person, but it identifies them.</p>
+                        </div>
+                        <div>
+                            <h4>Map Coordinates</h4>
+                            <p>Embeddings are coordinates in "Meaning Space".</p>
+                        </div>
+                    </div>
+                    <aside class="notes">
+                        How do random numbers represent a photo? Think of a fingerprint. A fingerprint isn't a person—you can't talk to it—but it uniquely identifies them. An embedding is the "fingerprint" of a photo's content. Or, think of a map. Coordinates like latitude and longitude tell you where a city is. Embeddings are coordinates that tell you where a picture lives in "Meaning Space." Photos of dogs live in one neighborhood; photos of cars live in another.
+                    </aside>
+                </section>
+
+                <!-- Slide 10: Normalization -->
+                <section>
+                    <h3>ML Concepts: Normalization</h3>
+                    <ul>
+                        <li><strong>Problem</strong>: Vectors ("arrows") are different sizes.</li>
+                        <li><strong>Solution</strong>: Make them the same length.</li>
+                        <li><strong>Metaphor: Same-Length Arrows</strong>
+                            <ul>
+                                <li>Now we only compare <em>direction</em>.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <aside class="notes">
+                        Sometimes the math gives us "arrows" that point in the right direction but are different lengths. "Normalization" is just a fancy word for making all the arrows the same length. Imagine shrinking or stretching them until they are identical in size. This ensures that when we compare them, we are only looking at *what* they are pointing at, not how "big" the numbers are.
+                    </aside>
+                </section>
+
+                <!-- Slide 11: Similarity -->
+                <section>
+                    <h3>ML Concepts: Similarity</h3>
+                    <ul>
+                        <li><strong>Dot Product</strong>: The math to compare two vectors.</li>
+                        <li><strong>Multi-Anchor Search</strong>: Using >1 example.</li>
+                        <li><strong>Metaphor: Multiple Magnets</strong>
+                            <ul>
+                                <li>Anchors are magnets.</li>
+                                <li>Candidate photos are metal.</li>
+                                <li>A photo needs to stick to only <em>one</em> magnet.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <aside class="notes">
+                        To check if two photos are similar, we use a math formula called the "Dot Product." It basically asks, "Are these two arrows pointing the same way?" Sometimes, you need more than one example—like a photo of your dog in the sun and one in the shade. We call this "Multi-Anchor Search." Think of your examples as magnets. If a photo in your library sticks to *any* of your magnets, it's a match!
+                    </aside>
+                </section>
+
+                <!-- Slide 12: Code - Embed -->
+                <section>
+                    <h3>Code Deep Dive: embed.ts</h3>
+                    <div class="mermaid">
+                        flowchart TD
+                        Start[Start] --> Check{Done?}
+                        Check -- Yes --> Skip[Skip]
+                        Check -- No --> Extractor[Run Extractor]
+                        Extractor --> Save[Save Vector]
+                        Save --> Mark[Mark Done]
+                    </div>
+                    <p>The Builder Script.</p>
+                    <aside class="notes">
+                        Let's look at the code in `embed.ts`. This script builds our database. It's smart—it checks a "progress" file first so it doesn't waste time processing images it has already seen. It sends every image to the `extractor` (our ML model), gets the numbers back, and saves them to our vector store. It’s like a factory line that turns pixels into data.
+                    </aside>
+                </section>
+
+                <!-- Slide 13: Code - Query -->
+                <section>
+                    <h3>Code Deep Dive: query.ts</h3>
+                    <div class="mermaid">
+                        flowchart TD
+                        Anchors --> EmbedAnc[Embed Anchors]
+                        EmbedAnc --> Stream[Stream Vectors]
+                        Stream --> Score[Score Match]
+                        Score --> TopK{Good Enough?}
+                        TopK -- Yes --> Keep[Add to List]
+                        TopK -- No --> Drop[Ignore]
+                    </div>
+                    <p>The Search Script (The Detective).</p>
+                    <aside class="notes">
+                        `query.ts` is the detective. You give it your anchors and some rules. `k` tells it, "Only keep the top 20 matches." `minScore` tells it, "Ignore anything that isn't a really good match." It reads through your entire library of vectors one by one, scoring them. It keeps a small list of "winners" updated as it goes, so it never uses too much memory.
+                    </aside>
+                </section>
+
+                <!-- Slide 14: Workflows -->
+                <section>
+                    <h3>Workflows</h3>
+                    <pre><code class="bash" data-trim>
+npm run scan
+npm run reps
+npm run embed
+npm run query
+                    </code></pre>
+                    <ul>
+                        <li><strong>Re-Running</strong>: Adding new photos? Run the loop again.</li>
+                        <li>It skips what it already knows!</li>
+                    </ul>
+                    <aside class="notes">
+                        Running the tool is easy; you just type these commands in order. `scan`, `reps`, `embed`, `query`. If you add 50 new photos next week, just run the same commands again. Because the system tracks its progress, it will fly past the old photos and only process the new ones.
+                    </aside>
+                </section>
+
+                <!-- Slide 15: Troubleshooting -->
+                <section>
+                    <h3>Troubleshooting</h3>
+                    <ul>
+                        <li><strong>"Vector store meta not found"</strong>
+                            <ul><li>You skipped <code>npm run embed</code>!</li></ul>
+                        </li>
+                        <li><strong>"Unexpected embedding output"</strong>
+                            <ul><li>Model shape mismatch. Check versions.</li></ul>
+                        </li>
+                        <li><strong>First run is slow?</strong>
+                            <ul><li>Downloading the ML model. Be patient.</li></ul>
+                        </li>
+                    </ul>
+                    <aside class="notes">
+                        If things go wrong, here are the common fixes. If it says "Meta not found," you probably skipped the `embed` step—you can't search a library you haven't built yet! If it's super slow the first time, don't worry. It's downloading the heavy AI brain from the internet. Once it's downloaded, it stays on your computer and runs fast.
+                    </aside>
+                </section>
+
+                <!-- Slide 16: Glossary -->
+                <section>
+                    <h3>Glossary</h3>
+                    <div class="two-col" style="font-size: 0.7em;">
+                        <div>
+                            <p><strong>Anchor</strong>: Search example.</p>
+                            <p><strong>Asset</strong>: Photo or video file.</p>
+                            <p><strong>Embedding</strong>: List of numbers (meaning).</p>
+                        </div>
+                        <div>
+                            <p><strong>Rep</strong>: Small copy for speed.</p>
+                            <p><strong>Normalization</strong>: Making vectors same length.</p>
+                            <p><strong>Vector</strong>: A list of numbers.</p>
+                        </div>
+                    </div>
+                    <aside class="notes">
+                        Here is a cheat sheet for the terms we used today. Remember: An "Asset" is your file. A "Rep" is its mini-copy. An "Anchor" is your search example. And "Embedding" and "Vector" are just the lists of numbers that make the magic happen. Keep this slide handy when you're reading the code!
+                    </aside>
+                </section>
+
+			</div>
+		</div>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/notes/notes.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/markdown/markdown.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/highlight/highlight.min.js"></script>
+		<script>
+            (async () => {
+                // Mermaid can be picky if diagram text starts with lots of indentation.
+                // Trim the text nodes so the first token is the diagram directive.
+                document.querySelectorAll('.mermaid').forEach((element) => {
+                    element.textContent = (element.textContent ?? '').trim();
+                });
+
+                mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
+                await Reveal.initialize({
+                    hash: true,
+                    plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+                });
+
+                await mermaid.run({ querySelector: '.mermaid' });
+            })();
+		</script>
+	</body>
+</html>
